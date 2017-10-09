@@ -1,18 +1,3 @@
-/* nodeData=[
-	{
-		name:'缺损'
-	},
-	{
-		name:'锁紧销'
-	},
-	{
-		name:'缺损'
-	},
-	{
-		name:'缺损'
-	}
-]; */
-
 function upload(input) {
     var str;
     //支持chrome IE10  
@@ -57,43 +42,65 @@ function upload(input) {
 
 function drawDiagram(nodeDataStr) {
     const reg1 = /\(\'([^=]*?)\',\)|\(\'([^=]*?)\'\)/g;
-    const reg2 = /\'(.*?)\'/g;
-    /* var str="Rule: ('缺损','test') ==> ('锁紧销',) , 1.000\n123";
-
-    //var str1=reg1.exec (str)[1];
-    //var str2=reg2.exec(str1)[1];
-    //var str3=reg2.exec(str1)[1];
-
-    //alert(str3);
-    //alert(reg1.exec (str)[1]);
-    //alert(reg1.exec (str)[1]);*/
+    const reg2 = / \d([\d.]*)\d/;
     alert('1' + nodeDataStr);
     var arr = nodeDataStr.split("\r\n");
     var sourceNode, targetNode;
+    var lineRate;
     var nodeData = [];
     var linkData = [];
-
+    var categories = [];
+    var i = 0;
     arr.forEach(function (node) {
+
         //alert("该行数据为:"+node);
         if (reg1.test(node)) {
             sourceNode = node.match(reg1)[0];
             console.log(sourceNode);
             targetNode = node.match(reg1)[1];
             console.log(targetNode);
+            lineRate = node.match(reg2)[0].replace(' ', '');
+            console.log(lineRate);
             sourceNode = removeRedundantChar(sourceNode);
             targetNode = removeRedundantChar(targetNode);
             var sourceObject = {};
             sourceObject.name = sourceNode;
-            if (!contains(nodeData, sourceNode))
+            sourceObject.label = {
+                normal: {
+                    show: true
+                }
+            };
+            if (!contains(nodeData, sourceNode)) {
+                categories[i] = {
+                    name: sourceNode
+                };
+                sourceObject.category = i;
                 nodeData.push(sourceObject);
+                i++;
+            }
+
             var targetObject = {};
             targetObject.name = targetNode;
-            if (!contains(nodeData, targetNode))
+            if (!contains(nodeData, targetNode)) {
+                categories[i] = {
+                    name: targetNode
+                };
+                targetObject.category = i;
                 nodeData.push(targetObject);
+                i++;
+            }
+
             //alert(nodeData.length);
             var linkObject = {};
+            var normal = {
+                width: (lineRate - 0.89) * 100
+            };
             linkObject.source = sourceNode;
             linkObject.target = targetNode;
+            linkObject.value = lineRate;
+            linkObject.lineStyle = {
+                normal: normal
+            };
             linkData.push(linkObject);
         }
     });
@@ -102,53 +109,35 @@ function drawDiagram(nodeDataStr) {
     b = JSON.stringify(linkData);
     alert(b);
     var aprioriChart = echarts.init(document.getElementById('apriori'));
-    /*var markLineOpt = {
-        animation: false,
-        label: {
-            normal: {
-                formatter: 'y = x + 2',
-                textStyle: {
-                    align: 'right'
-                }
-            }
-        },
-        lineStyle: {
-            normal: {
-                type: 'solid'
-            }
-        },
-        tooltip: {
-            formatter: 'y = x + 2'
-        },
-        data: [[{
-            coord: [-2, 0],
-            symbol: 'none'
-        }, {
-            coord: [8, 10],
-            symbol: 'none'
-        }]]
-    };*/
-    option = {
+    var option = {
         title: {
             text: 'Les Miserables',
             subtext: 'Circular layout',
             top: 'bottom',
             left: 'right'
         },
+        legend: [{
+            //selectedMode: 'single',
+            data: categories.map(function (a) {
+                return a.name;
+            })
+        }],
         tooltip: {},
         animationDurationUpdate: 1500,
         animationEasingUpdate: 'quinticInOut',
         series: [
             {
-                name: 'Les Miserables',
+                name: 'apriori',
                 type: 'graph',
                 layout: 'circular',
                 circular: {
                     rotateLabel: true
                 },
+                edgeSymbol: ['circle', 'arrow'],
+                edgeSymbolSize: [4, 10],
                 data: nodeData,
                 links: linkData,
-                //categories: categories,
+                categories: categories,
                 roam: true,
                 label: {
                     normal: {
@@ -171,13 +160,14 @@ function drawDiagram(nodeDataStr) {
 
 //去除字符串的多余符号
 function removeRedundantChar(str) {
-    str = str.replace("', '", "+");
+    str = str.replace(/', '/g, "+");
     str = str.replace("('", "");
     str = str.replace("')", "");
     str = str.replace("',)", "");
     return str;
 }
 
+//判断点obj是否已经存在在json数组中
 function contains(arr, obj) {
     var i = arr.length;
     while (i--) {
