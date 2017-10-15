@@ -1,16 +1,15 @@
 function upload(input) {
     var str;
     //支持chrome IE10  
+    var fileName;
     if (window.FileReader) {
         var file = input.files[0];
-        filename = file.name.split(".")[0];
+        fileName = file.name.split(".")[0];
         var reader = new FileReader();
         reader.onload = function () {
             console.log(this.result);
-            //alert(this.result);
             str = this.result;
             drawDiagram(str);
-            //alert('1'+nodeDataStr);
         };
         reader.readAsText(file);
     }
@@ -36,14 +35,14 @@ function upload(input) {
     } else {
         alert('error');
     }
-
-
 }
 
+var aprioriChart = echarts.init(document.getElementById('apriori'));
+var option;
 function drawDiagram(nodeDataStr) {
     const reg1 = /\(\'([^=]*?)\',\)|\(\'([^=]*?)\'\)/g;
     const reg2 = / \d([\d.]*)\d/;
-    alert('1' + nodeDataStr);
+    console.log(nodeDataStr);
     var arr = nodeDataStr.split("\r\n");
     var sourceNode, targetNode;
     var lineRate;
@@ -104,14 +103,12 @@ function drawDiagram(nodeDataStr) {
             linkData.push(linkObject);
         }
     });
-    var b = JSON.stringify(nodeData);
-    alert(b);
-    b = JSON.stringify(linkData);
-    alert(b);
-    var aprioriChart = echarts.init(document.getElementById('apriori'));
-    var option = {
+    console.log(JSON.stringify(nodeData));
+    console.log(JSON.stringify(linkData));
+
+    option = {
         title: {
-            text: 'Les Miserables',
+            text: 'Apriori',
             subtext: 'Circular layout',
             top: 'bottom',
             left: 'right'
@@ -158,6 +155,52 @@ function drawDiagram(nodeDataStr) {
 
 }
 
+//单击点显示该点出发的所有线
+aprioriChart.on('click', function (params) {
+    console.log(params);
+    if (params.componentType === "series" && params.seriesType === "graph") {
+        if (params.dataType === "node") {
+            var nodeName = params.name;
+            //获取所有的link信息
+            var linkData = aprioriChart.getOption().series[0].links;
+            console.log(linkData);
+            //将所有起点不是被点击的点的线隐藏
+            linkData.forEach(function (link) {
+                if (link.source !== nodeName)
+                    link.lineStyle.normal.opacity = 0;
+                else
+                    link.lineStyle.normal.opacity = 0.5;
+            });
+            aprioriChart.setOption({
+                series: [{
+                    links: linkData
+                }]
+            });
+            console.log(aprioriChart.getOption());
+        }
+    }
+});
+
+//双击点恢复显所有线
+aprioriChart.on('dblclick', function (params) {
+    console.log(params);
+    if (params.componentType === "series" && params.seriesType === "graph") {
+        if (params.dataType === "node") {
+            //获取所有的link信息
+            var linkData = aprioriChart.getOption().series[0].links;
+            console.log(linkData);
+            //恢复显示所有link
+            linkData.forEach(function (link) {
+                link.lineStyle.normal.opacity = 0.5;
+            });
+            aprioriChart.setOption({
+                series: [{
+                    links: linkData
+                }]
+            });
+        }
+    }
+});
 //去除字符串的多余符号
 function removeRedundantChar(str) {
     str = str.replace(/', '/g, "+");
