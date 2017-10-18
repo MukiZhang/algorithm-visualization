@@ -8,7 +8,23 @@
 </head>
 <body>
 <input type="file" onchange="upload(this)"/>
-<div id="apriori" style="width: 1200px;height:1200px;"></div>
+<div class="col-md-9" id="apriori" style="width: 1200px;height:1000px;"></div>
+<div class="col-md-4">
+    <div class="row">
+        <button type="button" class="btn-primary" onclick="showAll()">恢复</button>
+        <div class="radio">
+            <label>
+                <input type="radio" name="optionsRadios" id="circular" value="circular" checked
+                       onclick="changeChartLayout(this)"> 关系图
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="optionsRadios" id="force" value="force" onclick="changeChartLayout(this)">力引导布局
+            </label>
+        </div>
+    </div>
+</div>
 
 <script language="JavaScript" src="../js/node.js"></script>
 <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">

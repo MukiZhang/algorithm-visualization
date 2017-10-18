@@ -37,6 +37,30 @@ function upload(input) {
     }
 }
 
+function showAll() {
+    //获取所有的link信息
+    var linkData = aprioriChart.getOption().series[0].links;
+    console.log(linkData);
+    //恢复显示所有link
+    linkData.forEach(function (link) {
+        link.lineStyle.normal.opacity = 0.5;
+    });
+    aprioriChart.setOption({
+        series: [{
+            links: linkData
+        }]
+    });
+}
+
+function changeChartLayout(obj) {
+    console.log(obj);
+    var isChecked = obj.id;
+    aprioriChart.setOption({
+        series: [{
+            layout: isChecked
+        }]
+    });
+}
 var aprioriChart = echarts.init(document.getElementById('apriori'));
 var option;
 function drawDiagram(nodeDataStr) {
@@ -77,9 +101,13 @@ function drawDiagram(nodeDataStr) {
                 nodeData.push(sourceObject);
                 i++;
             }
-
             var targetObject = {};
             targetObject.name = targetNode;
+            targetObject.label = {
+                normal: {
+                    show: true
+                }
+            };
             if (!contains(nodeData, targetNode)) {
                 categories[i] = {
                     name: targetNode
@@ -88,7 +116,6 @@ function drawDiagram(nodeDataStr) {
                 nodeData.push(targetObject);
                 i++;
             }
-
             //alert(nodeData.length);
             var linkObject = {};
             var normal = {
@@ -136,6 +163,7 @@ function drawDiagram(nodeDataStr) {
                 links: linkData,
                 categories: categories,
                 roam: true,
+                draggable: true,
                 label: {
                     normal: {
                         position: 'right',
@@ -185,20 +213,8 @@ aprioriChart.on('click', function (params) {
 aprioriChart.on('dblclick', function (params) {
     console.log(params);
     if (params.componentType === "series" && params.seriesType === "graph") {
-        if (params.dataType === "node") {
-            //获取所有的link信息
-            var linkData = aprioriChart.getOption().series[0].links;
-            console.log(linkData);
-            //恢复显示所有link
-            linkData.forEach(function (link) {
-                link.lineStyle.normal.opacity = 0.5;
-            });
-            aprioriChart.setOption({
-                series: [{
-                    links: linkData
-                }]
-            });
-        }
+        if (params.dataType === "node")
+            showAll();
     }
 });
 //去除字符串的多余符号
@@ -219,7 +235,6 @@ function contains(arr, obj) {
         }
     }
     return false;
-} 
+}
 
-    
 
